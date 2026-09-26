@@ -1,4 +1,4 @@
-# http-client (Go) — TODO
+# http (Go) — TODO
 
 ## P0 — client (done)
 
@@ -35,10 +35,10 @@
       trustworthy, not just present.
 - [ ] **Verify, don't just cite the doc comment**: confirm `net/http`'s
       `socks5://` proxy support genuinely resolves the destination hostname
-      via the proxy, not local DNS, before this client (or `tor-client-go`
+      via the proxy, not local DNS, before this client (or `tor-go`
       reusing it) is trusted to route anything through `TorSocksRelay` - see
       DESIGN.md "Identity metadata leaks".
-- [ ] Wire `tor-client-go`/`i2p-go` to use this client's `ProxyURL` instead
+- [ ] Wire `tor-go`/`i2p-go` to use this client's `ProxyURL` instead
       of their own minimal HTTP parsing over a raw SOCKS `net.Conn`.
 - [ ] Expose response status code + headers on the envelope (currently only
       the body and, on failure, the status code as an error message string).
@@ -66,5 +66,5 @@
       pattern as `NetworkServiceProtocol`/`HttpProtocolService` in
       `1m5-core-java` (`1m5-core-rust`'s `protocol.rs` has `i2p`/`tor`
       features but no `http` one yet either).
-- [ ] Port `http-client-{python,ts,rust,cpp,cs}` alongside this one (see
+- [ ] Port `http-{python,ts,rust,cpp,cs}` alongside this one (see
       the sibling repos under `http/`).

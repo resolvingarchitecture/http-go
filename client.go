@@ -1,9 +1,9 @@
-// Package httpclient is a direct (non-anonymized) HTTP/HTTPS client for
+// Package http is a direct (non-anonymized) HTTP/HTTPS client for
 // 1M5, ported from http-client-java's ra.http.HTTPService — client (outbound
 // sendOut) only; the Jetty-based local server/SPA/WebSocket hosting side of
 // HTTPService is not ported (no Go equivalent need has come up yet, see
 // DESIGN.md).
-package httpclient
+package http
 
 import (
 	"bytes"

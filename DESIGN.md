@@ -1,14 +1,14 @@
-# http-client (Go) — Design
+# http (Go) — Design
 
 A direct HTTP/HTTPS client, for use as the plain-HTTP **protocol service**
-by a future `1m5-core-go` — the clearnet counterpart to `tor-client-go` and
+by a future `1m5-core-go` — the clearnet counterpart to `tor-go` and
 `i2p-go`. A Go port of `ra.http.HTTPService` in
-[`http-client-java`](https://github.com/resolvingarchitecture/http-client-java),
+[`http-java`](https://github.com/resolvingarchitecture/http-java),
 scoped to the client (outbound `sendOut`) half only.
 
 ## Where it sits
 
-    (future) 1m5-core-go  ──wraps──►  httpclient.HTTPClient
+    (future) 1m5-core-go  ──wraps──►  http.HTTPClient
                                               │
                                      net/http.Client
                                               │
@@ -18,7 +18,7 @@ scoped to the client (outbound `sendOut`) half only.
 
 ## Not the Jetty half
 
-`http-client-java`'s `HTTPService` is two things bolted together: an
+`http-java`'s `HTTPService` is two things bolted together: an
 outbound client (`sendOut`, built on OkHttp) *and* a local server framework
 (`launch`, `EnvelopeHandler`, `SPAHandler`, `EnvelopeWebSocket`,
 `EnvelopeJSONDataHandler`) used to host 1M5's own API/SPA and — via
@@ -31,7 +31,7 @@ Java-only feature until a concrete non-Java consumer needs it.
 
 ## Why `net/http`, not hand-rolled sockets
 
-`tor-client-go`'s `http.go` hand-rolls SOCKS5 + a raw `GET` on `net.Conn`,
+`tor-go`'s `http.go` hand-rolls SOCKS5 + a raw `GET` on `net.Conn`,
 deliberately: it goes through Tor's SOCKS proxy and originally needed no
 TLS (see that package's `DESIGN.md`). This package has the opposite
 default — full HTTP semantics (all four verbs, headers, HTTPS, redirects,
@@ -39,7 +39,7 @@ multipart bodies) are the actual job — so it uses the standard library's
 `net/http`, which already does all of that correctly, including `socks5://`
 proxy URLs (`http.Transport.Proxy`, built in since Go 1.10) — no extra
 dependency needed either way. A `ProxyURL` field is exposed so
-`tor-client-go`/`i2p-go` could later reuse this client with their SOCKS
+`tor-go`/`i2p-go` could later reuse this client with their SOCKS
 proxy instead of maintaining their own minimal HTTP parsing — not wired up
 by this change; see `TODO.md`.
 
@@ -50,7 +50,7 @@ by this change; see `TODO.md`.
                  status code (403/408/410/418/451/511), mirroring
                  ra.http.HTTPService#handleFailure
 
-Flat package `httpclient` at the repo root, matching `tor-client-go`/
+Flat package `http` at the repo root, matching `tor-go`/
 `i2p-go`/`seda-bus-go`/`service-bus-go`'s layout (no internal subpackages).
 
 ## Message flow
@@ -64,7 +64,7 @@ response body lands on the same envelope via `AddContent`; a non-2xx
 status appends the code to `ErrorMessages` and, for a known blocked-style
 code, sets `LastBlock`.
 
-Unlike `tor-client-go`'s ad hoc `Headers["url"]`/`Headers["body"]`/
+Unlike `tor-go`'s ad hoc `Headers["url"]`/`Headers["body"]`/
 `Headers["error"]` convention (a shortcut for its minimal SOCKS-only GET),
 this port uses `Envelope`'s actual typed fields (`URL`, `ActionValue`,
 `Content()`/`AddContent()`, `ErrorMessages()`) — the fuller surface
@@ -77,7 +77,7 @@ this port uses `Envelope`'s actual typed fields (`URL`, `ActionValue`,
 
 `Status` is its own small `int32`-backed type (`Disconnected`,
 `Connecting`, `Connected`, `Error`), backed by `atomic.Int32` — same
-pattern as `tor-client-go`/`i2p-go`, not `ra-common-go`'s wider
+pattern as `tor-go`/`i2p-go`, not `ra-common-go`'s wider
 `servicestatus` types. `Send` lazily calls `Start` if not already
 connected, matching `HTTPService#sendOut`'s
 `if(!isConnected() && !connect())`.
@@ -86,7 +86,7 @@ connected, matching `HTTPService#sendOut`'s
 
 Required standard for any HTTP client this project relies on for anonymized
 traffic (Tor/I2P), enforced here and checked against every sibling
-`http-client-*` port: no default header, response header, or connection
+`http-*` port: no default header, response header, or connection
 behavior may reveal more about the requester than it has to.
 
 - **Code changed 2026-09-26, ⚠ not yet build-verified**: this client used to
@@ -97,10 +97,10 @@ behavior may reveal more about the requester than it has to.
   signal - it identifies the exact language runtime and HTTP stack to every
   destination and any on-path observer. Now `DefaultUserAgent` (a generic,
   widely-shared browser value) is sent whenever the caller hasn't supplied
-  one - the same fix already applied to `http-client-java` (OkHttp's own
-  default, confirmed via bytecode), `http-client-cpp`/`http-client-python`
+  one - the same fix already applied to `http-java` (OkHttp's own
+  default, confirmed via bytecode), `http-cpp`/`http-python`
   (both previously defaulted to the project-identifying literal
-  `"ra-http-client"`, arguably worse), `http-client-rust`/`http-client-ts`,
+  `"ra-http-client"`, arguably worse), `http-rust`/`http-ts`,
   and `1m5-remnant`'s Android `TorClient`.
   **This one is unverified, unlike all of those**: no Go toolchain was
   available in the environment this change was made in - `go` was not on
@@ -114,7 +114,7 @@ behavior may reveal more about the requester than it has to.
 - **Not yet verified**: this repo's own comment claims `net/http.Transport`
   resolves `socks5://` proxy URLs "built in since Go 1.10," implying the
   destination hostname is handed to the SOCKS layer for remote resolution
-  rather than resolved locally first - matching what `http-client-cpp`'s
+  rather than resolved locally first - matching what `http-cpp`'s
   `ConnectThroughSocks5` was directly confirmed to do. That claim hasn't
   been independently re-verified against Go's actual stdlib source in this
   pass (unlike the C++ check, which was) - do that before relying on this
@@ -124,7 +124,7 @@ behavior may reveal more about the requester than it has to.
   (`tor-client-java`, 2026-09-25).
 - **No server/inbound half** (see "Not the Jetty half" above), so the third
   known leak shape - a server-identifying response header, found and fixed
-  in `http-client-java`'s Jetty listener (`Server: Jetty(<version>)`) -
+  in `http-java`'s Jetty listener (`Server: Jetty(<version>)`) -
   doesn't apply yet. Check for it if P2's local server hosting is ever built.
 
 ## Not here
@@ -133,7 +133,7 @@ behavior may reveal more about the requester than it has to.
   `HTTPService` (see above).
 - Redirect-following tuning, connection pool tuning beyond `net/http`
   defaults.
-- Tor/I2P SOCKS proxy reuse by `tor-client-go`/`i2p-go` (the `ProxyURL`
+- Tor/I2P SOCKS proxy reuse by `tor-go`/`i2p-go` (the `ProxyURL`
   field makes it possible; not wired up here).
 - A `NetworkConnectionReport`-style event stream — `BlockReport` is just
   the last one, read via `LastBlock`.

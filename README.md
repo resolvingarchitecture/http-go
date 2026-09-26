@@ -1,11 +1,11 @@
-# http-client (Go)
+# http (Go)
 
 A direct (non-anonymized) HTTP/HTTPS client for **1M5**: builds a request
 from a `messaging.Envelope` (URL, action, headers, body) and writes the
 response back onto it.
 
 A Go port of the client (outbound `sendOut`) side of
-[`http-client-java`](https://github.com/resolvingarchitecture/http-client-java)'s
+[`http-java`](https://github.com/resolvingarchitecture/http-java)'s
 `ra.http.HTTPService`. The Jetty-based local server / SPA / WebSocket
 hosting side of `HTTPService` is not ported — no other language port has
 needed it yet; see `DESIGN.md`.
@@ -15,10 +15,10 @@ needed it yet; see `DESIGN.md`.
 ```go
 import (
     "github.com/resolvingarchitecture/ra-common-go/messaging"
-    httpclient "github.com/resolvingarchitecture/http-client-go"
+    "github.com/resolvingarchitecture/http-go"
 )
 
-client := httpclient.NewHTTPClient()   // or httpclient.FromConfig(cfg)
+client := http.NewHTTPClient()   // or http.FromConfig(cfg)
 
 env := messaging.DocumentEnvelope()    // must be a document envelope - AddContent needs it
 url := "https://resolvingarchitecture.io"
@@ -61,7 +61,7 @@ monorepo-dependency convention.
 
 **Code changed 2026-09-26, ⚠ not yet build-verified** - the same class of
 bug found and fixed (and confirmed working) in
-`http-client-java`/`http-client-cpp`/`http-client-python` and
+`http-java`/`http-cpp`/`http-python` and
 `1m5-remnant`'s Android `TorClient`: this client used to set no explicit
 default `User-Agent`, leaving Go's `net/http.Transport` free to inject its
 own `User-Agent: Go-http-client/1.1` on every request with none set. Now

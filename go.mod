@@ -1,4 +1,4 @@
-module github.com/resolvingarchitecture/http-client-go
+module github.com/resolvingarchitecture/http-go
 
 go 1.27.1
 
