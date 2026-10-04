@@ -173,7 +173,7 @@ func TestLiveHTTPSGet(t *testing.T) {
 	c := NewHTTPClient()
 	c.RequestTimeout = 5 * time.Second
 	env := messaging.DocumentEnvelope()
-	url := "https://resolvingarchitecture.io"
+	url := "https://resolvingarchitecture.dev"
 	env.URL = &url
 	env.ActionValue = getAction()
 

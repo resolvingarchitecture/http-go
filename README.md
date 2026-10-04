@@ -21,7 +21,7 @@ import (
 client := http.NewHTTPClient()   // or http.FromConfig(cfg)
 
 env := messaging.DocumentEnvelope()    // must be a document envelope - AddContent needs it
-url := "https://resolvingarchitecture.io"
+url := "https://resolvingarchitecture.dev"
 env.URL = &url
 action := messaging.ActionGet
 env.ActionValue = &action
